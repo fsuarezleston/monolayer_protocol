@@ -5,27 +5,29 @@ It is designed for the use of monolayer systems generated with _CHARMM-GUI_,
 specifically in CHARMM36. If other method for the assembly of the monolayers 
 or other forcefield is used modifications are required.
 
-## Protocol
+## Steps
 
-1) Generate the monolayer system using the [Monolayer Builder tool  
-   of CHARMM-GUI](https://www.charmm-gui.org/?doc=input/membrane.monolayer).
+1) Generate the monolayer system using the [Monolayer Builder tool of CHARMM-GUI](https://www.charmm-gui.org/?doc=input/membrane.monolayer).
    A reasonable number of water molecules per lipid must be provided (see comment [^1]).
 
-3) Copy the folder with the GROMACS inputs into the monolayer protocol
+2) Copy the folder with the GROMACS inputs into the monolayer protocol
    folder `./monolayer_protocol/PROTOCOL_FILES/MONOLAYER_FOLDER`
 
-5) Execute the `ToOPC.sh` script to substitute the TIP3 water model by
+3) Execute the `ToOPC.sh` script to substitute the TIP3 water model by
    the 4-point OPC model:
    
-   ```$ bash PROTOCOL_FILES/ToOPC.sh MONOLAYER_FOLDER```
+   ```
+   $ bash PROTOCOL_FILES/ToOPC.sh MONOLAYER_FOLDER
+   ```
    
    Or, if you have your own method to convert 3-point into 4-point water
    molecules, you can use it instead.
 
-6) Follow CHARMM-GUI's minimization and equilibration protocol as usual.
+5) Follow CHARMM-GUI's minimization and equilibration protocol as usual.
    The CHARMM-GUI's README file has been modified in the previous step
    to execute only one production simulation. You can execute the whole
    protocol as
+   
    ```
    $ cd MONOLAYER_FOLDER
    $ csh README
@@ -38,18 +40,17 @@ or other forcefield is used modifications are required.
    (com) processess.
 
    ```
-   python ../PROTOCOL_FILES/PreparePLUMED.py \
-   -f step7_1.gro -lr LIPIDS -c MIN_APL -e MAX_APL
+   $ python ../PROTOCOL_FILES/PreparePLUMED.py -f step7_1.gro -lr LIPIDS -c MIN_APL -e MAX_APL
    ```
 
-   `LIPIDS` refers to the list of lipid resiudes, separated by spaces, while
+   `LIPIDS` refers to the list of lipid resiudes separated by spaces, e.g. `POPC POPE DPPC`; while
    `MIN_APL` and `MAX_APL` are the target APL values of the compression and
    expansion processes, respectively. Please, note that the expansion and
    compression times are preset, and match the time defined in `NPT.mdp`. If
    you want to change the expansion or compression velocities, you must modify
    accodordingly these files.
 
-9) Execute the expansion and compression simulations, starting from the 
+8) Execute the expansion and compression simulations, starting from the 
    final stage of the previous equilibration protocol.
 
    ```
@@ -62,12 +63,21 @@ or other forcefield is used modifications are required.
    For moderate size systems (~100 lipids and ~80 water molecules per lipid) these processes, if
    executed for the default time, are not expensive, and can be executed in an HPC within an hour.
 
-11) Execute the `PullAndPush.py` script to generate the initial structures of
+9) Execute the `PullAndPush.py` script to generate the initial structures of
    the points in the isotherm.
 
-   `$ python ../PROTOCOL_FILES/PullAndPush.py -f . -a INITIAL_APL FINAL_APL INCREMENT_APL`
+   ```
+   $ python ../PROTOCOL_FILES/PullAndPush.py -f . -a INITIAL_APL FINAL_APL INCREMENT_APL
+   ```
 
-Finally, you will get folders `APL_XXX` containing `NVT.tpr`, which should be run on HPC environment. Feel free to change the output by properly modifying `NVT.mdp` provided by us.
+   This will create a series of `APL_XXX`, where `XXX` is the value of the ApL of the system ranging
+   from `INITIAL_APL` to `FINAL_APL` (not included), in `INCREMENT_APL` increments. Each of them contains
+   a `NVT.tpr` which corresponds to a NVT simulation at its value of ApL. The simulations must be carried out
+   at a HPC facility.
+
+   Feel free to regulate the simulation by properly modifying `NVT.mdp` provided by us prior
+   to the execution of this step.
+
 
 ## Useful information
 
